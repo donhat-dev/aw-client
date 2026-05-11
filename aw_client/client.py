@@ -18,6 +18,17 @@ from typing import (
 )
 
 import persistqueue
+try:
+    from persistqueue import exceptions as persistqueue_exceptions
+    from persistqueue import sqlqueue as persistqueue_sqlqueue
+except Exception:  # pragma: no cover - fallback when optional modules missing
+    persistqueue_exceptions = None
+    persistqueue_sqlqueue = None
+
+if persistqueue_sqlqueue and not hasattr(persistqueue, "FIFOSQLiteQueue"):
+    persistqueue.FIFOSQLiteQueue = persistqueue_sqlqueue.FIFOSQLiteQueue
+if persistqueue_exceptions and not hasattr(persistqueue, "exceptions"):
+    persistqueue.exceptions = persistqueue_exceptions
 import requests as req
 from aw_core.dirs import get_data_dir
 from aw_core.models import Event

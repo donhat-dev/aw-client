@@ -1,7 +1,10 @@
 .PHONY: build test typecheck clean examples
 
+PYTHON ?= python
+POETRY ?= $(PYTHON) -m poetry
+
 build:
-	poetry install
+	$(POETRY) install
 
 test:
 	python -c "import aw_client"
@@ -22,7 +25,7 @@ lint-fix:
 	ruff check --fix .
 
 typecheck:
-	poetry run mypy
+	$(POETRY) run mypy
 
 format:
 	ruff format .
