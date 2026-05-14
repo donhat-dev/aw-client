@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable, Optional
 
 ODOO_CONFIG_SETTING = "odoo_config"
+ODOO_TRACKING_CONTEXT_SETTING = "odoo_tracking_context"
 
 _ODOO_CONFIG_FIELDS = {
     "enabled",
@@ -51,15 +52,23 @@ def load_global_odoo_config(client: Any, logger: Any = None) -> Optional[Dict[st
     return config
 
 
-def apply_global_odoo_config(odoo_config: Any, client: Any, logger: Any = None, source: str = "") -> bool:
+def apply_global_odoo_config(
+    odoo_config: Any,
+    client: Any,
+    logger: Any = None,
+    source: str = "",
+    ignored_fields: Optional[Iterable[str]] = None,
+) -> bool:
     global_config = load_global_odoo_config(client, logger=logger)
     if not global_config:
         return False
 
     changed = False
-    fingerprint = json.dumps(global_config, sort_keys=True, default=str)
+    ignored = set(ignored_fields or ())
+    effective_config = {key: value for key, value in global_config.items() if key not in ignored}
+    fingerprint = json.dumps(effective_config, sort_keys=True, default=str)
     previous_fingerprint = getattr(odoo_config, "_aw_global_odoo_fingerprint", None)
-    for key, value in global_config.items():
+    for key, value in effective_config.items():
         if not hasattr(odoo_config, key):
             continue
         if getattr(odoo_config, key) != value:
